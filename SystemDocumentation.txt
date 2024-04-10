@@ -1,0 +1,138 @@
+############## EVENTS AGGREGATION SYSTEM #######################
+
+Description:
+- This is a generic system that can collect different data from other applications, and stores that data for general reporting.
+- The data is about user actions such as - registration, login, logout, dowloading files, installing and uninstalling company products.
+- Data is collected as events send to a web api.
+- To avoid exposing direct access to the database, and prevent data loss in case the database must be maintained (backuped), or the database cannot handle large volume of requests,
+the data is first send to a messaging queue which is very durable and with high availability.
+- There is a windows service which is responsible for processing the messages when it is running. It must only process several messages at a time, avoiding high load on the database.
+- If the windows service is stopped, messages are kept in the queue and can be processed at a later time.
+
+#### WEB API ####
+
+located at - http://localhost:5083
+
+Routes:
+
+GET /environment
+
+- requires no authentication
+- returns what type of events are supported by the system
+
+POST /events
+
+- requires api key authentication (api key is located in appsettings.json)
+- query params: type (must be a valid event type)
+- body: json
+
+Example valid body for event types:
+
+- FileDownload
+
+{
+	"Id": "2fd7fd4d-8ee6-ee11-a8f8-f48e38cc0ecd",
+	"Date": "3/27/2024 6:03:33 PM",
+	"FileName": "myfile.exe",
+	"FileLenght": 252588
+}
+
+- UserLogin
+
+{
+	"UserId": "0184dea5-72d3-49f9-89c0-93a25af86383",
+	"Date": "3/27/2024 7:03:33 PM",
+	"Email": "jhon.doe@gmail.com",
+	"FirstName": "lyubo",
+	"LastName": "angelov"
+}
+
+- UserLogout
+
+{
+	"Date": "3/25/2024 5:03:33 PM",
+	"Email": "jhon.doe@gmail.com"
+}
+
+- UserRegistered
+
+{
+	"Email": "jhon.doe@gmail.com",
+	"FirstName": "Jhon",
+	"LastName": "Doe",
+	"Company": "ACME Inc",
+	"Phone": "123456"
+}
+
+- ProductInstalled
+
+{
+	"ProductName": "ACME badass software",
+	"ProductVersion": "5.2.3",
+	"UserId": "a30d0999-fb81-41af-9e3d-d56a7d453009",
+	"Date": "3/27/2024 6:03:33 PM"
+}
+
+- ProductUninstalled
+
+{
+	"ProductName": "ACME badass software",
+	"ProductVersion": "1.0.0",
+	"UserId": "a30d0999-fb81-41af-9e3d-d56a7d453009",
+	"Date": "3/27/2024 6:03:33 PM"
+}
+
+DELETE /Users
+
+- requires api key authentication (api key is located in appsettings.json)
+- query params: userEmail
+
+For manual and exploratory testing before automation there is swagger at - http://localhost:5083/swagger/index.html
+
+=====================================================================================
+
+- Limitations: some properties in post /events require valid data, like required fileds or valid email addresses, valid product versions, and so on...
+
+=====================================================================================
+
+#### API FUNCTIONALITY ####
+
+POST /Events is sending messages in http://localhost:15672/#/queues/%2F/eventsQueue
+same messages are also distributed in - http://localhost:15672/#/queues/%2F/eventsQueue.tests for facilitating test automation.
+
+Message format is in json:
+
+{"Type":[the event type from query param],"Data":{ [data from post body] }
+
+- Only valid data must be send to the queue.
+
+DELETE /Users
+ - Must send special type of event with the user email.
+ 
+#### Windows service functionality ####
+
+- Windows service name is - EventsProcessWindowsService
+- Service must be running in order to process messages from the queue.
+- Service is using local database storage - located in the project folder - "\events-aggregation-system\src\EventsProcessWindowsService\eventsdb.db"
+- The database is SQlite
+
+- The database schema consist of several tables:
+
+FileDownloadEvent
+ - stores the data from FileDownload type events.
+ 
+ProductActionTraking
+ - stores the data from ProductInstalled and ProductUninstalled type events.
+ 
+User
+ - stores the data from UserRegistered type events.
+ 
+UserLoginEvent
+ - stores the data from UserLogin type events.
+ 
+UserLogOutEvent
+ - stores the data from UserLogout type events.
+ 
+* Some data in the database may be stored in different format, or addtinal data may be added to the original event.
+* When special type UserDelete is processed the service must delete all rows from all tables that contain the provided email.
+* When event type is UserRegistered - if the user is already existing in User table, no action is taken.
