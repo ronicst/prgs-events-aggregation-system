@@ -25,15 +25,15 @@ Testing strategy for events-aggregation-system
    * Logout
   
 Next step:
-1. Extract the common classes in common library - good candidate is building the requests with different parameters.
+1. Extract the common classes in the common library - a good candidate is building the requests with different parameters.
 2. Enhance MQManager to validate that after the BadRequest, there isn’t any received message in the queue.
 
 Limitation:
-1. e2e workflow doesn't reflect to the real flow because of missing of the unique identifier for the created user and to ensure thatexactly the same user has been login and downloaded the file.
+1. e2e workflow doesn't reflect the real flow because of the missing of the unique identifier for the created user and to ensure that exactly the same user has been logged in and downloaded the file.
 
 
 How to configure and run SUT
-Reqirements:
+Requirements:
 Windows, VisualStudio 2022, .net 8 SDK, .netFramework 4.8 SDK
 
 How to run the project:
@@ -43,7 +43,7 @@ One time setup:
     - latest Erlang from https://www.erlang.org/downloads
     - latest RabbitMq service from https://www.rabbitmq.com/docs/install-windows
 - Enable Management plugin from this documentation - https://www.rabbitmq.com/docs/management
-(default login details are always username: guest, password: guest, do not change them on loalhost env)
+(default login details are always username: guest, password: guest, do not change them on localhost env)
 
 If your network configuration support IPv4 and IPv6:
 Known issue with rabbitmq: When there are both configuration (IPv4 and IPv6), Rabbitmq node seems to be listening only to IPv6, ignoring IPv4
@@ -59,16 +59,16 @@ Workaround:
     - Locate the new service in Services.msc and start it.
 
 Running the services:
-- Web api may be launched with F5 in VisualStudio in dedug mode, Or by executing - dotnet run in src\EventsWebService folder
+- Web api may be launched with F5 in VisualStudio in debug mode, Or by executing - dotnet run in src\EventsWebService folder
 - Api is explorable at - http://localhost:5083/swagger/index.html
 - Authentication key is in the appsettings.json file.
 - Windows service is in manual mode, start it when needed.
 
 - Basic functionality of the system:
 1. Web api is accepting different type of events.
-1. When event is post it's data and type is send as message to the rabbitMQ queue.
+1. When event is post its data and type is sent as message to the rabbitMQ queue.
 1. The windows service is listening for messages in the queue.
 1. When a message is received it than stores the data in a local database file - \src\EventsProcessWindowsService\eventsdb.db
 
-Note: There is addtitional queue - eventsQueue.tests - which also receives the same messages, but they are not consumed, it is to be used in tests for validations of the features in the web api.
+Note: There is additional queue - eventsQueue.tests - which also receives the same messages, but they are not consumed, it is to be used in tests for validations of the features in the web api.
 - More details can be found in - SystemDocumentation.txt
