@@ -23,10 +23,13 @@ Testing strategy for events-aggregation-system
    * Login user
    * Download file
    * Logout
-  
+
 Next step:
 1. Extract the common classes in the common library - a good candidate is building the requests with different parameters.
 2. Enhance MQManager to validate that after the BadRequest, there isn’t any received message in the queue.
+
+Improvements:
+More details: ImprovementsList.txt
 
 Limitation:
 1. e2e workflow doesn't reflect the real flow because of the missing of the unique identifier for the created user and to ensure that exactly the same user has been logged in and downloaded the file.
