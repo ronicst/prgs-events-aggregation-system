@@ -1,5 +1,80 @@
 Improvement summary
-
-
+1. Validation of the field’s size is missing and it’s possible to use too long strings.
+—-----------------------
+2. API validations are not consistent - different validations are implemented for the same field e.g. email
+—-----------------------
+3. The error handle is not consistent, once the appropriate error message is implemented, further ways the error is “Unexpected error” for similar fields e.g. email, date
+—-----------------------
+4. Address the typos
 
 Bug list
+
+The bugs are mentioned in the test code to identify which test detect it.
+
+1. EnvironmentTests.EnvironmentSupportedEventsType(): 
+Current: FileUpload definition is missing but it’s listed in enum EventType, but there isn’t Dto
+Expected: the same event types to be defined without skiping one of them
+—-----------------------
+2. EnvironmentSupportedEventsType:
+Current: InvoiceCreated definition is listed only in the EnvironmentController, but it’s missing in events type and there isn’t any Dto for it. It’s listed in the response body of the swagger. 
+Expected: the same event types to be defined without skiping one of them
+—-----------------------
+3. DeleteUserNegative("invalid_email"):
+Current: Delete request: there isn’t validation that the email is the correct form. It fails only if the query parameter is empty.
+Expected: To have email format validation.
+—-----------------------
+4. Current: The FileDownload POST request accepts the date in the future. There isn’t date accuracy validation. This is a valid payload:
+{"Id":"2fd7fd4d-8ee6-ee11-a8f8-f48e38cc0ecd","Date":"3024-03-27T18:03:33","FileName":"myfile.exe","FileLenght":5656}
+Expected: To validate that the date is valid
+—-----------------------
+5. EventsRequiredData("2fd7fd4d-8ee6-ee11-a8f8-f48e38cc0ecd","3/27/3024","","3343")
+Current: File name could be a space. Bug: File name is not mandatory field. There isn't any validation for names to be there.
+Expected: To have the corresponding validation that the file name is populated
+—-----------------------
+6. There is inconsistency in the web API routes - ones start with capital letters, further not:
+/environment
+/Events
+/Users
+—-----------------------
+7. ProductInstalledRestLongProductVersionTest:
+Current: return wrong message: “Incorrect email format.”
+Expected: Return the correct message for the field product version
+—-----------------------
+8. ProductInstalledRestLongProductNameTest: 
+Current: there isn’t limitation of the field size, accepts too long string
+—-----------------------
+9. ProductUninstalledRequiredDataTests: 
+Current: Product name can be empty field
+—-----------------------
+10. ProductUninstalledInvalidLongProductNameTests: 
+Current: No limitation of product name length
+—-----------------------
+11. ProductUninstalledInvalidLongProductVersionTests: 
+Current: No limitation of product version length
+—-----------------------
+12. ProductUninstalledInvalidDateTests: 
+Current: It should return something like: “Invalid date format”. Now, it's an "Unexpected error."
+—-----------------------
+13. ProductUninstalledInvalidGuidTests: 
+Current: It should return something like: “Invalid guid format”. Now, it's an "Unexpected error."
+—-----------------------
+14. UserLogoutTests: 
+Current: No validation for email and date, the requests are successful with invalid data or empty value.
+—-----------------------
+15. UserRegisteredTests: 
+Current: First and last Name can be empty, there isn’t any validation
+—-----------------------
+16. EventsDateInFuture - 
+Current: The date fields accept the values in the future. The API accept the date in the future, there isn't a validation for this.
+—-----------------------
+17. UserLoginTestsRequiredDataTest: 
+Current: Email, GUID, First and Last name can be empty
+—-----------------------
+18. UserLoginTestsInvalidDate:
+Current: No validation for date format, request is successful
+—-----------------------
+19. RegisterUserPhoneNumberTexts - 
+Current: the field Phone accepts plain text, which is not a valid phone number format
+—-----------------------
+20. EventsRequiredData("2fd7fd4d-8ee6-ee11-a8f8-f48e38cc0ecd","3/27/3024","","3343")   
+Current: File name is not required, when the event is “FileDownload”
